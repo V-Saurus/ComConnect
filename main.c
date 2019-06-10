@@ -57,7 +57,7 @@ int open_port(void) {
     return fd;
   }
   else {
-    fcntl(fd, F_SETFL, 0);
+    fcntl(fd, F_SETFL, FNDELAY);
 
     /* получение текущих опций */
     tcgetattr(fd, &options);
