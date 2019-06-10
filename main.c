@@ -13,7 +13,7 @@ int open_port(void);
 
 void main (void) {
   int fd;
-  int n; /* */
+  int n; /* */ int d = 0;
   char buff[BUFFER_SIZE + 1]; /* буфер ввода */
   char *bufptr;           /*  */
 
@@ -32,11 +32,12 @@ void main (void) {
   while ((n = read(fd, buff, BUFFER_SIZE)) > 0) {
     buff[n] = 0;
     fputs(buff, stdout);
-//    bufptr = strstr(buff, "exit");
+   d = getchar();
+//    bufptr = strstr(buff, "St");
 //    printf("string is %d\n", bufptr);
-//    if (n) break;
+    if (d == 'q') break;
   }
-
+  fputs(buff, stdout);
   /* закрытие COM-порта */
   close(fd);
 }
