@@ -7,14 +7,14 @@
 #include <errno.h>
 #include <termios.h>
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 256
 
 int open_port(void);
 
 void main (void) {
   int fd;
   int n; /* */ int d = 0;
-  char buff[BUFFER_SIZE + 1]; /* буфер ввода */
+  char buff[BUFFER_SIZE]; /* буфер ввода */
   char *bufptr;           /*  */
 
 //  memset(buf, sizeof(buf), 0);
@@ -23,21 +23,25 @@ void main (void) {
   fd =  open_port();
 
   /* отправка тестовой посылки в COM */
-  n = write(fd, "TEST!\nCOM-port is work!\n", 24);
-  if (n < 0) {
-    fputs("write() of 5 bytes failed!\n", stderr);
-  }
+//  n = write(fd, "TEST!\nCOM-port is work!\n", 24);
+//  if (n < 0) {
+//    fputs("write() of 5 bytes failed!\n", stderr);
+//  }
 
   /* чтение данных из COM */
-  while ((n = read(fd, buff, BUFFER_SIZE)) > 0) {
-    buff[n] = 0;
+  while ( d != 'q') {
+    sleep(3);
+    n = read(fd, buff, BUFFER_SIZE);
+//    buff[n] = 0;
     fputs(buff, stdout);
-   d = getchar();
+    printf("n = %d\n", n);
+    printf("\nДля выхода нажать \"q\"\n");
+    memset(buff, 0, BUFFER_SIZE);
+    d = getchar();
 //    bufptr = strstr(buff, "St");
 //    printf("string is %d\n", bufptr);
-    if (d == 'q') break;
-  }
-  fputs(buff, stdout);
+//  if (d == 'q') break;
+  } 
   /* закрытие COM-порта */
   close(fd);
 }
@@ -65,9 +69,6 @@ int open_port(void) {
     /* разрешение приёмника и установка локального режима */
     options.c_cflag |= (CLOCAL | CREAD);
 
-    /* установка новыз опций для порта */
-    tcsetattr(fd, TCSANOW, &options);
-
     /* установка контроля чётности и размеров символов */
     options.c_cflag &= ~PARENB;
     options.c_cflag &= ~CSTOPB;
@@ -82,6 +83,9 @@ int open_port(void) {
 
     /* выбор необработанного (raw) вывода */
     options.c_cflag &= ~OPOST;
+
+    /* установка новыз опций для порта */
+    tcsetattr(fd, TCSANOW, &options);
   }
   return fd;
 }
