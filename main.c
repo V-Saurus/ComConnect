@@ -21,11 +21,12 @@ void main (void) {
   fd =  open_port();
 
   /* отправка тестовой посылки в COM */
-  send_comand(fd, U);
+  send_comand(fd, H);
   getchar();
 
   /* чтение данных из COM */
-  get_test(fd);
+  get_unswer(fd, H);
+//  get_test(fd);
 
   /* закрытие COM-порта */
   close(fd);

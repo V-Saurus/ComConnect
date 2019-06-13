@@ -4,6 +4,8 @@
 #define LI 2
 #define B 3
 #define C 4
+#define R 5
+#define H 6
 
 /* получение ответа без КС из порта */
 int send_comand(int fd, int command);
