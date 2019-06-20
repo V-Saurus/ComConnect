@@ -20,13 +20,51 @@ void main (void) {
   memset(buff, 0, BUFFER_SIZE);
   fd =  open_port();
 
-  /* отправка тестовой посылки в COM */
+  printf("SEND H\n");
   send_comand(fd, H);
-  getchar();
-
-  /* чтение данных из COM */
+  usleep(300000);
   get_unswer(fd, H);
-//  get_test(fd);
+
+  printf("SEND U\n");
+  getchar();
+  send_comand(fd, U);
+  sleep(1);
+  get_unswer(fd, U);
+
+  printf("SLEEP 30\n");
+  sleep(30);
+//  getchar();
+  get_unswer(fd, U2);
+
+  printf("SEND LI\n");
+  getchar();
+  send_comand(fd, LI);
+//  getchar();
+  sleep(3);
+  get_unswer(fd, LI);
+
+  printf("Загрузи образ\n");
+  getchar();
+  printf("Стирание буфера\n");
+  flush_data(fd);
+
+  printf("SEND B");
+  getchar();
+  send_comand(fd, B);
+ sleep(3);
+//  getchar();
+  get_unswer(fd, B);
+
+  printf("SEND C\n");
+  getchar();
+  send_comand(fd, C);
+  sleep(3);
+//  getchar();
+  get_unswer(fd, C);
+
+
+//  getchar();
+
 
   /* закрытие COM-порта */
   close(fd);

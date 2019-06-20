@@ -11,7 +11,7 @@
 
 /* получение ответа без КС из порта */
 int get_unswer(int fd, int comand) {
-  int n;                           /* количество считанных символов */
+  int n = 0;                       /* количество считанных символов */
   int d = 0;
   int err_counter = 0;             /* счётчик ошибок проверок маски */
   int ok_flag = 0;
@@ -23,39 +23,65 @@ int get_unswer(int fd, int comand) {
 
   /* выбор подстроки */
   switch (comand) {
-  case H:
-    str[0] = 60; str[1] = 72; str[3] = 62; str[4] = 32; str[5] = 32;
-    str[6] = 45; str[7] = 32; str[8] = 241; str[9] = 239; str[10] = 240;
-    str[11] = 224; str[12] = 226; str[13] = 234; str[14] = 224; str[15] = 13;
-    str[16] = 13; str[17] = 10; str[18] = 46;
+  case H:   /**/
+    str[0] = 60; str[1] = 72; str[2] = 62; str[3] = 32; str[4] = 32;
+    str[5] = 45; str[6] = 32; str[7] = 241; str[8] = 239; str[9] = 240;
+    str[10] = 224; str[11] = 226; str[12] = 234; str[13] = 224; str[14] = 13;
+    str[15] = 13; str[16] = 10; str[17] = 46;
     break;
-  case U:
+  case U:   /*"U 'CR' 'LF' Стирание..."*/
+    str[0] = 85; str[1] = 13; str[2] = 10; str[3] = 209; str[4] = 242;
+    str[5] = 232; str[6] = 240; str[7] = 224; str[8] = 237; str[9] = 232;
+    str[10] = 229; str[11] = 46; str[12] = 46; str[13] = 46;
     break;
-  case LI:
+  case U2:  /*"'CR' 'CR' 'LF' ."*/
+    str[0] = 13; str[1] = 13; str[2] = 10; str[3] = 46;
+//    str[0] = 13; str[1] = 10; str[2] = 46;
     break;
-  case B:
+  case LI:  /*"LI 'CR' 'LF' Загрузка образа."*/
+    str[0] = 76; str[1] = 73; str[2] = 13; str[3] = 10; str[4] = 199;
+    str[5] = 224; str[6] = 227; str[7] = 240; str[8] = 243; str[9] = 231;
+    str[10] = 234; str[11] = 224; str[12] = 32; str[13] = 238; str[14] = 225;
+    str[15] = 240; str[16] = 224; str[17] = 231; str[18] = 224; str[19] = 46;
     break;
-  case C:
+  case B:   /*"B 'CR' 'LF' Запись ... 'CR' 'LF' Адрес "*/
+    str[0] = 66; str[1] = 13; str[2] = 10; str[3] = 199; str[4] = 224;
+    str[5] = 239; str[6] = 232; str[7] = 241; str[8] = 252; str[9] = 46;
+    str[10] = 46; str[11] = 46; str[12] = 13; str[13] = 10; str[14] = 192;
+    str[15] = 228; str[16] = 240; str[17] = 229; str[18] = 241; str[19] = 32;
     break;
-  case R:
+  case C:   /*"C 'CR' 'LF' Сравнение... 'CR' 'LF' Адр"*/
+    str[0] = 67; str[1] = 13; str[2] = 10; str[3] = 209; str[4] = 240;
+    str[5] = 224; str[6] = 226; str[7] = 237; str[8] = 229; str[9] = 237;
+    str[10] = 232; str[11] = 229; str[12] = 46; str[13] = 46; str[14] = 46;
+    str[15] = 13; str[16] = 10; str[17] = 192; str[18] = 228; str[19] = 240;
+ break;
+  case R:   /*!!! ВНИМАНИЕ !!! Массив информации от ВИНС-М при старте превышает 256 символов, при этом
+              КС выпадает на переход. Для корректной работы необходимо увеличить массив принятых символов.
+              "Контрольная сумма:  "*/
+    str[0] = 202; str[1] = 238; str[2] = 237; str[3] = 242; str[4] = 240;
+    str[5] = 238; str[6] = 235; str[7] = 252; str[8] = 237; str[9] = 224;
+    str[10] = 255; str[11] = 32; str[12] = 241; str[13] = 243; str[14] = 236;
+    str[15] = 236; str[16] = 224; str[17] = 58; str[18] = 32; str[19] = 32;
     break;
   default:
     break;
   }
   /* чтение данных из COM */
   while ((n != -1) && (err_counter < 5)) {
+//  while (n != -1) {
 //    sleep(3);
     n = read(fd, buff, BUFFER_SIZE);
 //    buff[n] = 0;
     fputs(buff, stdout);
-    printf("n = %d\n", n);
+    printf("\nn = %d\n", n);
     printf("err = %d\n", err_counter);
 //    printf("\nДля выхода нажать \"q\"\n");
     istr = strstr(buff, str);
     if (istr == NULL) {
       printf("String do not detected!");
       err_counter++;
-      d = getchar();
+//      d = getchar();
     }
     else {
       printf("String detected!");
@@ -67,9 +93,10 @@ int get_unswer(int fd, int comand) {
 //  if (d == 'q') break;
     memset(buff, 0, BUFFER_SIZE);
   }
-  printf("ok_flag = %d\n", ok_flag);
+  printf("\nok_flag = %d\nn = %d\n", ok_flag, n);
   return ok_flag;
 }
+
 
 /* получение ответа с КС из порта */
 int get_ks_unswer() {
@@ -131,6 +158,16 @@ int send_file() {
   
 }
 
+/* очистка буфера*/
+int flush_data(int fd) {
+  int n = 0;                       /* количество считанных символов */
+  unsigned char buff[BUFFER_SIZE]; /* буфер ввода */
+
+  while (n != -1) {
+    n = read(fd, buff, BUFFER_SIZE);
+  }
+ return n;
+}
 
 /* тестовая функция приёма данных из порта */
 void get_test(int fd) {
@@ -151,23 +188,33 @@ void get_test(int fd) {
     sleep(3);
     n = read(fd, buff, BUFFER_SIZE);
 //    buff[n] = 0;
+
+/*//// вывод текста
     fputs(buff, stdout);
-/*    { unsigned int i;
+/*/
+
+///// вывод кодов символов
+    { int i;
     for (i = 0; i < n; i++) {
       printf("%d\n", buff[i]);
     }
-    }*/
+    }
+//
+
+///// вывод количества принятых символов
     printf("n = %d\n", n);
+//
     printf("\nДля выхода нажать \"q\"\n");
+
+/*//// Поиск строки
     istr = strstr(buff, str);
     if (istr == NULL) 
       printf("String do not detected!");
     else
       printf("String detected!");
+/*/
+
     d = getchar();
-//    bufptr = strstr(buff, "St");
-//    printf("string is %d\n", bufptr);
-//  if (d == 'q') break;
     memset(buff, 0, BUFFER_SIZE);
   }
 }
