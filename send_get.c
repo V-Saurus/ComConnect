@@ -85,7 +85,7 @@ int get_unswer(int fd, int comand) {
     }
     else {
       printf("String detected!");
-      d = getchar();
+//      d = getchar();
       ok_flag = 1;
     }
 //    bufptr = strstr(buff, "St");
@@ -154,8 +154,17 @@ int send_comand(int fd, int command) {
 }
 
 /* отправка файла в порт */
-int send_file() {
-  
+int send_file(int fdi, int fdc) {
+  char buff[BUFFER_SIZE];
+  char ch = 0;
+  int n = 0;
+
+  while ((n = read (fdi, buff, BUFFER_SIZE)) > 0) {
+    write(fdc, buff, n);
+    usleep(25000);
+//    write(1, buff, n);
+  }
+  return 1;
 }
 
 /* очистка буфера*/

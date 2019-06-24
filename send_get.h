@@ -18,7 +18,7 @@ int get_ks_unswer();
 int send_comand(int fd, int command);
 
 /* отправка файла в порт */
-int send_file();
+int send_file(int fdi, int fdc);
 
 /* очистка буфера приёмника */
 int flush_data();
