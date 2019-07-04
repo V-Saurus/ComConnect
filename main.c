@@ -13,8 +13,11 @@ int main (int argc, char ** argv) {
   int fd, fdi;
   int n; /* */ int d = 0;
   char buff[BUFFER_SIZE]; /* буфер ввода */
-  char *bufptr;           /*  */
+  char *check;           /*  */
 
+  memset(buff, 0, BUFFER_SIZE);
+
+  /* проверка наличия одного входного файла */
   if (argc < 2) {
     printf("No file selected!\n");
     return -1;
@@ -24,16 +27,30 @@ int main (int argc, char ** argv) {
     return -1;
   }
 
-//  memset(buf, sizeof(buf), 0);
+  /* открытие входного файла */
   fdi = open(argv[1], O_RDONLY);
+  if (fdi == -1) {
+    perror("open_file: Unable to open file ");
+    return -1;
+  }
 
-  printf("Test!\n");
-  memset(buff, 0, BUFFER_SIZE);
+  /* проверка расширения входного файла */
+  check = strstr(argv[1], ".i10");
+  if ((check == NULL) || (strlen(argv[1]) != (check - argv[1] + 4))) {
+    printf("Type of file is not '.i10'\n");
+    return -1;
+  }
+
+  /* открытие и настройка COM-порта */
   fd =  open_port();
+  if (fd == -1) {
+    return -1;
+  }
 
+  /* посылка команд и обработка ответов */
   printf("SEND H\n");
   send_comand(fd, H);
-  usleep(300000);
+  sleep(1);
   get_unswer(fd, H);
 
   printf("SEND U\n");

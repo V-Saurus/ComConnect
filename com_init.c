@@ -13,7 +13,7 @@ int open_port(void) {
   /* открытие порта */
   fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd == -1) {
-    perror("open_port: Unable to open /dev/ttyUSB0 - ");
+    perror("open_port: Unable to open /dev/ttyUSB0 ");
     return fd;
   }
   else {
