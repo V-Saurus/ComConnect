@@ -9,11 +9,20 @@
 
 #define BUFFER_SIZE 256
 
-void main (int argc, char ** argv) {
+int main (int argc, char ** argv) {
   int fd, fdi;
   int n; /* */ int d = 0;
   char buff[BUFFER_SIZE]; /* буфер ввода */
   char *bufptr;           /*  */
+
+  if (argc < 2) {
+    printf("No file selected!\n");
+    return -1;
+  }
+  if (argc > 2) {
+    printf("Selected a lot of files!\n");
+    return -1;
+  }
 
 //  memset(buf, sizeof(buf), 0);
   fdi = open(argv[1], O_RDONLY);
