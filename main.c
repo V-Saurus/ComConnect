@@ -51,52 +51,62 @@ int main (int argc, char ** argv) {
   printf("SEND H\n");
   send_comand(fd, H);
   sleep(1);
-  get_unswer(fd, H);
+  if (!get_answer(fd, H)) {
+    printf("Device not detected!\n");
+    return -2;
+  }
 
   printf("SEND U\n");
-//  getchar();
   send_comand(fd, U);
   sleep(1);
-  get_unswer(fd, U);
+  if (!get_answer(fd, U)) {
+    printf("No answer from device: (Errase).\n");
+    return -2;
+  }
 
-  printf("SLEEP 30\n");
+  printf("Errasing...\n");
   sleep(30);
-//  getchar();
-  get_unswer(fd, U2);
+  if (!get_answer(fd, U2)) {
+    printf("No answer from device: (Errasing complite).\n");
+    return -2;
+  }
 
   printf("SEND LI\n");
-//  getchar();
   send_comand(fd, LI);
-//  getchar();
   sleep(3);
-  get_unswer(fd, LI);
+  if (!get_answer(fd, LI)) {
+    printf("No answer from device: (Load image).\n");
+    return -2;
+  }
 
   printf("Loading file...\n");
   send_file(fdi, fd);
   sleep(3);
   close(fdi);
-//  getchar();
   sleep(3);
-  printf("Стирание буфера\n");
+//  printf("Стирание буфера\n");
   flush_data(fd);
 
-  printf("SEND B");
-//  getchar();
+  printf("SEND B\n");
   send_comand(fd, B);
- sleep(3);
-//  getchar();
-  get_unswer(fd, B);
+  sleep(3);
+  if(!get_answer(fd, B)) {
+    printf("No answer from device: (ROM record).\n");
+    return -2;
+  }
 
   printf("SEND C\n");
-//  getchar();
   send_comand(fd, C);
   sleep(3);
-//  getchar();
-  get_unswer(fd, C);
+  if(!get_answer(fd, C)) {
+    printf("No answer from device: (Check).\n");
+    return -2;
+  }
 
-
-//  getchar();
-
+  printf("SEND R\n");
+  send_comand(fd, R);
+  sleep(3);
+  get_answer(fd, R);
 
   /* закрытие COM-порта */
   close(fd);

@@ -9,10 +9,10 @@
 #define U2 7
 
 /* получение ответа без КС из порта */
-int get_unswer(int fd, int comand);
+int get_answer(int fd, int comand);
 
 /* получение ответа с КС из порта */
-int get_ks_unswer();
+int get_ks_answer();
 
 /* отправка команды в порт */
 int send_comand(int fd, int command);

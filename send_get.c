@@ -10,7 +10,7 @@
 #define STR_SIZE 20
 
 /* получение ответа без КС из порта */
-int get_unswer(int fd, int comand) {
+int get_answer(int fd, int comand) {
   int n = 0;                       /* количество считанных символов */
   int d = 0;
   int err_counter = 0;             /* счётчик ошибок проверок маски */
@@ -69,37 +69,24 @@ int get_unswer(int fd, int comand) {
   }
   /* чтение данных из COM */
   while ((n != -1) && (err_counter < 5)) {
-//  while (n != -1) {
-//    sleep(3);
     n = read(fd, buff, BUFFER_SIZE);
-//    buff[n] = 0;
     fputs(buff, stdout);
-    printf("\nn = %d\n", n);
-    printf("err = %d\n", err_counter);
-//    printf("\nДля выхода нажать \"q\"\n");
     istr = strstr(buff, str);
     if (istr == NULL) {
-      printf("String do not detected!");
       err_counter++;
-//      d = getchar();
     }
     else {
-      printf("String detected!");
-//      d = getchar();
       ok_flag = 1;
     }
-//    bufptr = strstr(buff, "St");
-//    printf("string is %d\n", bufptr);
-//  if (d == 'q') break;
     memset(buff, 0, BUFFER_SIZE);
   }
-  printf("\nok_flag = %d\nn = %d\n", ok_flag, n);
+//  printf("\nok_flag = %d\nn = %d\n", ok_flag, n);
   return ok_flag;
 }
 
 
 /* получение ответа с КС из порта */
-int get_ks_unswer() {
+int get_ks_answer() {
   
 }
 
