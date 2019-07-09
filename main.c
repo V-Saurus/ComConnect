@@ -8,12 +8,14 @@
 #include "send_get.h"
 
 #define BUFFER_SIZE 256
+#define KSUM_LENGTH 8
 
 int main (int argc, char ** argv) {
-  int fd, fdi;
-  int n; /* */ int d = 0;
-  char buff[BUFFER_SIZE]; /* буфер ввода */
-  char *check;           /*  */
+  int fd, fdi;                        /* файловые дескрипторы */
+  char buff[BUFFER_SIZE];             /* буфер ввода */
+  char *check;                        /* проверка расширения файла */
+  char load_ksum[KSUM_LENGTH] = {0};  /* контрольная сумма при загрузке (от целевого устройства) */
+  char check_ksum[KSUM_LENGTH] = {0}; /* контрольная сумма при проверке (от целевого устройства) */
 
   memset(buff, 0, BUFFER_SIZE);
 
@@ -27,17 +29,17 @@ int main (int argc, char ** argv) {
     return -1;
   }
 
-  /* открытие входного файла */
-  fdi = open(argv[1], O_RDONLY);
-  if (fdi == -1) {
-    perror("open_file: Unable to open file ");
-    return -1;
-  }
-
   /* проверка расширения входного файла */
   check = strstr(argv[1], ".i10");
   if ((check == NULL) || (strlen(argv[1]) != (check - argv[1] + 4))) {
     printf("Type of file is not '.i10'\n");
+    return -1;
+  }
+
+  /* открытие входного файла */
+  fdi = open(argv[1], O_RDONLY);
+  if (fdi == -1) {
+    perror("open_file: Unable to open file ");
     return -1;
   }
 
@@ -48,7 +50,7 @@ int main (int argc, char ** argv) {
   }
 
   /* посылка команд и обработка ответов */
-  printf("SEND H\n");
+  printf("Connecting...\n");
   send_comand(fd, H);
   sleep(1);
   if (!get_answer(fd, H)) {
@@ -56,54 +58,64 @@ int main (int argc, char ** argv) {
     return -2;
   }
 
-  printf("SEND U\n");
+  printf("Errasing...");
   send_comand(fd, U);
   sleep(1);
   if (!get_answer(fd, U)) {
-    printf("No answer from device: (Errase).\n");
+    printf("No answer from device. Errasing does not start.\n");
     return -2;
   }
 
-  printf("Errasing...\n");
+  printf(" (~30 s)\n");
   sleep(30);
   if (!get_answer(fd, U2)) {
-    printf("No answer from device: (Errasing complite).\n");
+    printf("No answer from device. Errasing fault.\n");
     return -2;
   }
 
-  printf("SEND LI\n");
+  printf("Errasing OK.\n");
   send_comand(fd, LI);
   sleep(3);
   if (!get_answer(fd, LI)) {
-    printf("No answer from device: (Load image).\n");
+    printf("No answer from device. Loading image will not start.\n");
     return -2;
   }
 
-  printf("Loading file...\n");
+  printf("Loading file... (~2 min)\n");
   send_file(fdi, fd);
   sleep(3);
   close(fdi);
   sleep(3);
-//  printf("Стирание буфера\n");
   flush_data(fd);
 
-  printf("SEND B\n");
+  printf("ROM recording...\n");
   send_comand(fd, B);
   sleep(3);
-  if(!get_answer(fd, B)) {
-    printf("No answer from device: (ROM record).\n");
+  if(!get_ks_answer(fd, B, load_ksum)) {
+    printf("No answer from device. ROM record fault.\n");
     return -2;
   }
+  printf("Loading checksum: 0x%s\n", load_ksum);
 
-  printf("SEND C\n");
+  printf("Checking...\n");
   send_comand(fd, C);
   sleep(3);
-  if(!get_answer(fd, C)) {
-    printf("No answer from device: (Check).\n");
+  if(!get_ks_answer(fd, C, check_ksum)) {
+    printf("No answer from device. Checking fault.\n");
     return -2;
   }
+  printf("Checking checksum: 0x%s\n", check_ksum);
 
-  printf("SEND R\n");
+  /* сравнение контрольных сумм */
+  if (memcmp(load_ksum, check_ksum, KSUM_LENGTH) == 0) {
+    printf("Checksums ara equal.\n");
+  }
+  else {
+    printf("Checksums do not match!.\n");
+    return -3;
+  }
+
+  printf("Run loaded program.\n");
   send_comand(fd, R);
   sleep(3);
   get_answer(fd, R);

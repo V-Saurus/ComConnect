@@ -5,18 +5,20 @@
 #include <stdio.h>
 #include <string.h>
 #include "send_get.h"
+#include "strindex.h"
 
 #define BUFFER_SIZE 256
 #define STR_SIZE 20
+#define LENGTH_KSUM 14
 
 /* получение ответа без КС из порта */
 int get_answer(int fd, int comand) {
   int n = 0;                       /* количество считанных символов */
-  int d = 0;
+  int d = 0; //
   int err_counter = 0;             /* счётчик ошибок проверок маски */
-  int ok_flag = 0;
+  int ok_flag = 0;                 /* флаг наличия ожидаемой подстроки */
   unsigned char buff[BUFFER_SIZE]; /* буфер ввода */
-  char str[STR_SIZE];                     /* строка для поиска */
+  char str[STR_SIZE];              /* строка для поиска */
   char *istr;
 
   memset(str, 0, STR_SIZE);
@@ -70,7 +72,7 @@ int get_answer(int fd, int comand) {
   /* чтение данных из COM */
   while ((n != -1) && (err_counter < 5)) {
     n = read(fd, buff, BUFFER_SIZE);
-    fputs(buff, stdout);
+//    fputs(buff, stdout);
     istr = strstr(buff, str);
     if (istr == NULL) {
       err_counter++;
@@ -86,8 +88,64 @@ int get_answer(int fd, int comand) {
 
 
 /* получение ответа с КС из порта */
-int get_ks_answer() {
-  
+int get_ks_answer(int fd, int comand, char out_ksum[]) {
+  int n = 0;                       /* количество считанных символов */
+  int poz = 0;                     /* позиция позиция подстроки */
+  int err_counter = 0;             /* счётчик ошибок проверок маски */
+  int ok_flag = 0;                 /* флаг наличия ожидаемой подстроки */
+  unsigned char buff[BUFFER_SIZE]; /* буфер ввода */
+  char str[STR_SIZE];              /* строка для поиска */
+  char *istr;                      /* указатель на первый элемент подстроки */
+
+  char ksum[LENGTH_KSUM]; /* "Контр. сумма  " */
+  ksum[0] = 202; ksum[1] = 238; ksum[2] = 237; ksum[3] = 242; ksum[4] = 240; ksum[5] = 46; ksum[6] = 32;
+  ksum[7] = 241; ksum[8] = 243; ksum[9] = 236; ksum[10] = 236; ksum[11] = 224; ksum[12] = 32; ksum[13] = 32;//TODO
+
+  memset(str, 0, STR_SIZE);
+
+  /* выбор подстроки */
+  switch (comand) {
+  case B:   /*"B 'CR' 'LF' Запись ... 'CR' 'LF' Адрес "*/
+    str[0] = 66; str[1] = 13; str[2] = 10; str[3] = 199; str[4] = 224;
+    str[5] = 239; str[6] = 232; str[7] = 241; str[8] = 252; str[9] = 46;
+    str[10] = 46; str[11] = 46; str[12] = 13; str[13] = 10; str[14] = 192;
+    str[15] = 228; str[16] = 240; str[17] = 229; str[18] = 241; str[19] = 32;
+    break;
+  case C:   /*"C 'CR' 'LF' Сравнение... 'CR' 'LF' Адр"*/
+    str[0] = 67; str[1] = 13; str[2] = 10; str[3] = 209; str[4] = 240;
+    str[5] = 224; str[6] = 226; str[7] = 237; str[8] = 229; str[9] = 237;
+    str[10] = 232; str[11] = 229; str[12] = 46; str[13] = 46; str[14] = 46;
+    str[15] = 13; str[16] = 10; str[17] = 192; str[18] = 228; str[19] = 240;
+ break;
+  default:
+    break;
+  }
+  /* чтение данных из COM */
+  while ((n != -1) && (err_counter < 5)) {
+    n = read(fd, buff, BUFFER_SIZE);
+//    fputs(buff, stdout);
+    istr = strstr(buff, str);
+    if (istr == NULL) {
+      err_counter++;
+    }
+    else {
+      ok_flag = 1;
+    }
+  }
+  if (ok_flag) {
+    poz = strindex(buff, ksum);
+//    printf("%s\n%s\nd = %d\n", buff, ksum, poz);
+    if (poz != -1) {
+      int i;
+      for (i = 0; i < 8; i++) {
+//      printf("%c", buff[poz + LENGTH_KSUM + i]);
+        out_ksum[i] = buff[poz + LENGTH_KSUM + i];
+      }
+//      printf("%s\n", out_ksum);
+      return 1;
+    }
+  }
+  return 0;
 }
 
 /* отправка команды в порт */
@@ -214,5 +272,6 @@ void get_test(int fd) {
     memset(buff, 0, BUFFER_SIZE);
   }
 }
+
 
 

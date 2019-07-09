@@ -12,7 +12,7 @@
 int get_answer(int fd, int comand);
 
 /* получение ответа с КС из порта */
-int get_ks_answer();
+int get_ks_answer(int fd, int comand, char out_ksum[]);
 
 /* отправка команды в порт */
 int send_comand(int fd, int command);
